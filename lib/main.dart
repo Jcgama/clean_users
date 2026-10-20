@@ -5,7 +5,14 @@ import 'package:flutter/material.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   setup();
-  runApp(MaterialApp(
-    home: UsersPage(),
-  ));
+  runApp(const CleanUsersApp());
+}
+
+class CleanUsersApp extends StatelessWidget {
+  const CleanUsersApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(home: UsersPage());
+  }
 }

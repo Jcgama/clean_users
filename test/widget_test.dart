@@ -1,30 +1,44 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
+import 'package:clean_users/core/dependency_injection.dart';
+import 'package:clean_users/features/users/domain/entities/user.dart';
+import 'package:clean_users/features/users/domain/repositories/users_repository.dart';
+import 'package:clean_users/features/users/domain/usecases/get_users.dart';
+import 'package:clean_users/features/users/presentation/bloc/users_bloc.dart';
+import 'package:clean_users/main.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:clean_users/main.dart';
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  setUp(() async {
+    await getIt.reset();
+    getIt.registerFactory<UsersBloc>(
+      () => UsersBloc(
+        getUsers: GetUsers(
+          FakeUsersRepository([
+            User(id: 1, firstName: 'Ada', email: 'ada@example.com'),
+          ]),
+        ),
+      ),
+    );
   });
+
+  tearDown(() async {
+    await getIt.reset();
+  });
+
+  testWidgets('boots the app and displays loaded users', (tester) async {
+    await tester.pumpWidget(const CleanUsersApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Users'), findsOneWidget);
+    expect(find.text('Ada'), findsOneWidget);
+    expect(find.text('ada@example.com'), findsOneWidget);
+  });
+}
+
+class FakeUsersRepository implements UsersRepository {
+  FakeUsersRepository(this.users);
+
+  final List<User> users;
+
+  @override
+  Future<List<User>> getUsers() async => users;
 }
